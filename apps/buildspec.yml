@@ -1,0 +1,31 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $BACKEND_REPO_URL
+      - REPO_URI_BACKEND=$BACKEND_REPO_URL
+      - REPO_URI_FRONTEND=$FRONTEND_REPO_URL
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building Backend...
+      - cd backend
+      - docker build -t $REPO_URI_BACKEND:latest .
+      - docker tag $REPO_URI_BACKEND:latest $REPO_URI_BACKEND:$IMAGE_TAG
+      - cd ..
+      - echo Building Frontend...
+      - cd frontend
+      - docker build -t $REPO_URI_FRONTEND:latest .
+      - docker tag $REPO_URI_FRONTEND:latest $REPO_URI_FRONTEND:$IMAGE_TAG
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing Docker images...
+      - docker push $REPO_URI_BACKEND:latest
+      - docker push $REPO_URI_BACKEND:$IMAGE_TAG
+      - docker push $REPO_URI_FRONTEND:latest
+      - docker push $REPO_URI_FRONTEND:$IMAGE_TAG

@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-frontend
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            # In a real scenario, we'd bake this in or use a config map that Nginx reads
+            # For this demo, we assume the frontend JS reads from window.env or similar, 
+            # OR we just hardcode the relative path /api if we had an ingress controller.
+            # Since we are using NodePort, we might need to be clever.
+            # For simplicity, we'll assume the frontend build uses the VITE_API_URL.
+            # But VITE_API_URL is build time. 
+            # To make it dynamic, we'd need a startup script in the container to replace a placeholder.
+            - name: VITE_API_URL
+              value: {{ .Values.frontend.env.apiUrl }}

@@ -1,0 +1,18 @@
+backend:
+  image:
+    repository: REPLACE_ME_BACKEND
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 8080
+
+frontend:
+  image:
+    repository: REPLACE_ME_FRONTEND
+    tag: latest
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 30080
+  env:
+    apiUrl: "http://REPLACE_ME_MASTER_IP:30080/api" # Will be proxied or direct
